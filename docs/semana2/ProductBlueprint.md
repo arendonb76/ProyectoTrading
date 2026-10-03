@@ -88,10 +88,19 @@ Este recorte sigue entregando valor porque permite demostrar el supuesto central
 
 ## 6. Backlog priorizado
 
-El backlog del proyecto se gestiona mediante GitHub Projects.
+El backlog del proyecto se gestiona mediante GitHub Projects. Por ahora las coloco aca porque en Github se queda pensando y no crea ninguna tarjeta.
 
 **Tablero Kanban:**  
-[AGREGAR AQUÍ URL DEL GITHUB PROJECT]
+https://github.com/users/arendonb76/projects/1/views/1
+
+| Prioridad | Tarjeta | Criterios de aceptación |
+|---|---|---|
+| P0 | **Registrar una decisión** | Dado un registro válido, al registrarlo se genera una huella única, se envía a Testnet y se conserva la referencia de la transacción confirmada. |
+| P0 | **Confirmar registro en Stellar** | Una decisión solo aparece como registrada cuando existe confirmación de la red y se muestra su referencia. |
+| P0 | **Verificar una decisión** | Al entregar el mismo registro original, el sistema muestra coincidencia; si cambia cualquier dato, muestra que no coincide. |
+| P0 | **Mostrar evidencia de una decisión** | La aplicación muestra identificador de decisión, huella, referencia de red y momento de confirmación sin revelar información confidencial innecesaria. |
+| P1 | **Consultar historial verificable** | El trader puede consultar las decisiones que cuentan con una evidencia confirmada. |
+| P2 | **Compartir verificación con un tercero** | Un auditor puede realizar la comprobación sin necesitar acceso administrativo al journal del trader. |
 
 Las historias priorizadas incluyen criterios de aceptación dentro de cada tarjeta.
 
