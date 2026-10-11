@@ -1,2 +1,15 @@
-# ProyectoBase
-Plantilla base de BB101. Haz fork para arrancar el proyecto de tu equipo, incluye la estructura semana a semana de cada entregable.
+# Bitácora Verificable de Decisiones de Trading
+
+## Requisitos
+
+- Git
+- Python 3
+- Navegador web moderno
+
+## Instalación
+
+Clonar el repositorio:
+
+```bash
+git clone https://github.com/arendonb76/ProyectoTrading
+cd ProyectoTrading
