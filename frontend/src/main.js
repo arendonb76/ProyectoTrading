@@ -12,6 +12,9 @@ import {
   defaultModules,
 } from "@creit.tech/stellar-wallets-kit/modules/utils";
 
+import {
+  Client as TradingEvidenceClient,
+} from "./contract-client/src/index.ts";
 
 StellarWalletsKit.init({
   modules: defaultModules(),
@@ -39,6 +42,243 @@ const walletStatus =
 const walletAddressElement =
   document.getElementById("walletAddress");
 
+const registerStellarButton =
+  document.getElementById(
+    "registerStellarButton"
+  );
+
+const stellarStatus =
+  document.getElementById(
+    "stellarStatus"
+  );
+
+const stellarWriteResult =
+  document.getElementById(
+    "stellarWriteResult"
+  );
+
+registerStellarButton.addEventListener(
+  "click",
+  async () => {
+
+    stellarWriteResult.style.display =
+      "block";
+
+    if (!currentEvidence) {
+      stellarWriteResult.textContent =
+        "Primero debes generar una evidencia.";
+      return;
+    }
+
+    if (!walletAddress) {
+      stellarWriteResult.textContent =
+        "Primero debes conectar tu wallet.";
+      return;
+    }
+
+    registerStellarButton.disabled = true;
+
+    try {
+
+      stellarStatus.className = "pending";
+
+      stellarStatus.textContent =
+        "Preparando transacción...";
+
+      stellarWriteResult.textContent =
+        "Simulando registro en Stellar Testnet...";
+
+      const client =
+        getTradingEvidenceClient();
+
+      const decisionHash =
+        xdr.decodeBytes(
+          currentEvidence.hash,
+          "hex"
+        );
+
+      /*
+       * Esta llamada construye y simula.
+       * Todavía NO firma ni modifica Stellar.
+       */
+      const tx =
+        await client.register_decision({
+          owner: walletAddress,
+          decision_hash: decisionHash,
+        });
+
+      /*
+       * Nuestro contrato devuelve false
+       * si el hash ya existe.
+       *
+       * No tiene sentido pedir firma
+       * en ese caso.
+       */
+      if (tx.result !== true) {
+        stellarStatus.className = "pending";
+
+        stellarStatus.textContent =
+          "Ya registrada";
+
+        stellarWriteResult.textContent =
+          [
+            "Esta evidencia ya existe en Stellar.",
+            "",
+            `Hash: ${currentEvidence.hash}`,
+            "",
+            "No se solicitó una nueva firma.",
+          ].join("\n");
+
+        return;
+      }
+
+      stellarStatus.textContent =
+        "Esperando firma...";
+
+      stellarWriteResult.textContent =
+        [
+          "La simulación fue correcta.",
+          "",
+          "Revisa la transacción en tu wallet.",
+        ].join("\n");
+
+      /*
+       * Aquí se abrirá Freighter.
+       */
+      await tx.sign();
+
+      if (!tx.signed) {
+        throw new Error(
+          "La wallet no devolvió una transacción firmada."
+        );
+      }
+
+      const transactionHash =
+        bytesToHex(
+          tx.signed.hash()
+        );
+
+      stellarStatus.textContent =
+        "Enviando...";
+
+      stellarWriteResult.textContent =
+        [
+          "Transacción firmada.",
+          "",
+          `Transaction hash: ${transactionHash}`,
+          "",
+          "Enviando a Stellar Testnet...",
+        ].join("\n");
+
+      /*
+       * Envía la transacción ya firmada
+       * y espera su resultado.
+       */
+      const sent =
+        await tx.send();
+
+      if (sent.result !== true) {
+        throw new Error(
+          "Stellar confirmó la transacción, pero el contrato no devolvió true."
+        );
+      }
+
+      stellarStatus.className = "success";
+
+      stellarStatus.textContent =
+        "Confirmada";
+
+      currentEvidence.stellarStatus =
+        "CONFIRMED";
+
+      currentEvidence.transactionHash =
+        transactionHash;
+
+      currentEvidence.owner =
+        walletAddress;
+
+      stellarWriteResult.textContent =
+        [
+          "✓ Evidencia registrada en Stellar Testnet",
+          "",
+          `Hash de evidencia: ${currentEvidence.hash}`,
+          "",
+          `Wallet: ${walletAddress}`,
+          "",
+          `Transaction hash: ${transactionHash}`,
+        ].join("\n");
+
+    } catch (error) {
+
+      console.error(error);
+
+      stellarStatus.className = "error";
+
+      stellarStatus.textContent =
+        "Error";
+
+      stellarWriteResult.textContent =
+        [
+          "✗ No se pudo registrar la evidencia.",
+          "",
+          error?.message ?? String(error),
+        ].join("\n");
+
+    } finally {
+
+      registerStellarButton.disabled =
+        false;
+    }
+  }
+);
+
+ async function signWithConnectedWallet(
+  transactionXdr,
+  options = {}
+) {
+  if (!walletAddress) {
+    throw new Error(
+      "Debes conectar una wallet antes de firmar."
+    );
+  }
+
+  return StellarWalletsKit.signTransaction(
+    transactionXdr,
+    {
+      address: walletAddress,
+      networkPassphrase:
+        options.networkPassphrase ??
+        Networks.TESTNET,
+    }
+  );
+}
+
+
+function getTradingEvidenceClient() {
+  if (!walletAddress) {
+    throw new Error(
+      "Debes conectar una wallet antes de registrar evidencia."
+    );
+  }
+
+  return new TradingEvidenceClient({
+    contractId: CONTRACT_ID,
+    rpcUrl: RPC_URL,
+    networkPassphrase: Networks.TESTNET,
+    publicKey: walletAddress,
+    signTransaction: signWithConnectedWallet,
+    timeoutInSeconds: 300,
+  });
+}
+
+
+function bytesToHex(bytes) {
+  return Array.from(bytes)
+    .map((byte) =>
+      byte.toString(16).padStart(2, "0")
+    )
+    .join("");
+}
 
 connectWalletButton.addEventListener(
   "click",
