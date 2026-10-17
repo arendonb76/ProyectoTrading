@@ -1,0 +1,14 @@
+{
+  "network": "testnet",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "contract_id": "CCPJNMXZCTLAZGYIZXKMDTXLU4PDIDO5AK67GQW23OPA6C3KPEB35QM3",
+  "wasm_sha256": "7382e5b2ac655eea9dd07725f934a29b8520ec79e368a253c4ffbbe5fbc8c56b",
+  "deployer_public_key": "GBDYIEAXXA4QVLP76DCUZ446VUYDJZKFG5IR22MUJ6CIXCYKPKRXLYJN",
+  "validation": {
+    "decision_hash": "c579bb3b7552d3f67a4c320ce74b952ffd9d1a0ae3932dd4f95d5128f4fbc0fe",
+    "registered_at": 1792249917,
+    "initial_registration_tx": "46a2c94094e2502e9560eb2cc3197ca57626adff5064d1f062137246fcdaae85",
+    "duplicate_attempt_tx": "6e3676df7b04fd2bf4bb1f30c12e6785a909521b9ea3b71e125c6a9928f5d7bc",
+    "duplicate_attempt_result": false
+  }
+}
