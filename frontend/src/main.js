@@ -1,4 +1,8 @@
-import { Networks } from "@stellar/stellar-sdk";
+import {
+  Networks,
+  rpc,
+  xdr,
+} from "@stellar/stellar-sdk";
 
 import {
   StellarWalletsKit,
@@ -14,6 +18,15 @@ StellarWalletsKit.init({
 });
 
 StellarWalletsKit.setNetwork(Networks.TESTNET);
+
+const CONTRACT_ID =
+  "CCPJNMXZCTLAZGYIZXKMDTXLU4PDIDO5AK67GQW23OPA6C3KPEB35QM3";
+
+const RPC_URL =
+  "https://soroban-testnet.stellar.org";
+
+const rpcServer =
+  new rpc.Server(RPC_URL);
 
 let walletAddress = null;
 
@@ -60,6 +73,130 @@ connectWalletButton.addEventListener(
   }
 );
 
+const checkStellarButton =
+  document.getElementById("checkStellarButton");
+
+const stellarReadResult =
+  document.getElementById("stellarReadResult");
+
+
+checkStellarButton.addEventListener(
+  "click",
+  async () => {
+
+    const hash =
+      document
+        .getElementById("expectedHash")
+        .value
+        .trim()
+        .toLowerCase();
+
+    stellarReadResult.style.display = "block";
+
+    if (!/^[0-9a-f]{64}$/.test(hash)) {
+      stellarReadResult.textContent =
+        "Hash inválido. Debe contener exactamente 64 caracteres hexadecimales.";
+      return;
+    }
+
+    checkStellarButton.disabled = true;
+    checkStellarButton.textContent =
+      "Consultando Stellar...";
+
+    stellarReadResult.textContent =
+      "Consultando contrato en Stellar Testnet...";
+
+    try {
+
+      const decisionHash =
+        xdr.decodeBytes(hash, "hex");
+
+      const existsResponse =
+        await rpcServer.queryContract(
+          CONTRACT_ID,
+          "exists",
+          {
+            decision_hash: decisionHash,
+          },
+          Networks.TESTNET
+        );
+
+      if (!existsResponse.result) {
+        stellarReadResult.textContent =
+          [
+            "Evidencia no encontrada en Stellar.",
+            "",
+            `Hash: ${hash}`,
+            `Lectura sin firma: ${existsResponse.isReadCall}`,
+          ].join("\n");
+
+        return;
+      }
+
+      const evidenceResponse =
+        await rpcServer.queryContract(
+          CONTRACT_ID,
+          "get_decision",
+          {
+            decision_hash: decisionHash,
+          },
+          Networks.TESTNET
+        );
+
+      const evidence =
+        evidenceResponse.result;
+
+      if (!evidence) {
+        throw new Error(
+          "El contrato indicó que existe la evidencia, pero no devolvió sus datos."
+        );
+      }
+
+      const owner =
+        typeof evidence.owner === "string"
+          ? evidence.owner
+          : evidence.owner?.toString?.() ??
+            String(evidence.owner);
+
+      const registeredAt =
+        Number(evidence.registered_at);
+
+      const registeredDate =
+        new Date(
+          registeredAt * 1000
+        ).toISOString();
+
+      stellarReadResult.textContent =
+        [
+          "✓ Evidencia encontrada en Stellar Testnet",
+          "",
+          `Hash: ${hash}`,
+          `Owner: ${owner}`,
+          `Timestamp: ${registeredAt}`,
+          `Fecha UTC: ${registeredDate}`,
+          `Lectura sin firma: ${evidenceResponse.isReadCall}`,
+        ].join("\n");
+
+    } catch (error) {
+
+      console.error(error);
+
+      stellarReadResult.textContent =
+        [
+          "✗ Error consultando Stellar Testnet",
+          "",
+          error?.message ?? String(error),
+        ].join("\n");
+
+    } finally {
+
+      checkStellarButton.disabled = false;
+
+      checkStellarButton.textContent =
+        "Consultar evidencia en Stellar";
+    }
+  }
+);
 
 const STORAGE_KEY = "trading-proof-demo";
 
