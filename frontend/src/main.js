@@ -197,6 +197,29 @@ registerStellarButton.addEventListener(
       currentEvidence.owner =
         walletAddress;
 
+      const history =
+        JSON.parse(
+            localStorage.getItem(STORAGE_KEY) || "[]"
+        );
+
+      const existingIndex =
+        history.findIndex(
+            item => item.hash === currentEvidence.hash
+        );
+
+      if (existingIndex >= 0) {
+        history[existingIndex] = currentEvidence;
+      } else {
+        history.unshift(currentEvidence);
+      }
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(history)
+      );
+
+      renderHistory();
+
       stellarWriteResult.textContent =
         [
           "✓ Evidencia registrada en Stellar Testnet",
@@ -625,7 +648,9 @@ const STORAGE_KEY = "trading-proof-demo";
         <td>${item.record.action}</td>
         <td>${new Date(item.record.decisionAt).toLocaleString()}</td>
         <td><code>${item.hash.slice(0, 12)}...</code></td>
-        <td class="pending">Pendiente Testnet</td>
+        <td class="${item.stellarStatus === "CONFIRMED" ? "success" : "pending"}">
+            ${item.stellarStatus === "CONFIRMED" ? "Confirmada" : "Pendiente Testnet"}
+        </td>
       `;
 
       table.appendChild(row);
