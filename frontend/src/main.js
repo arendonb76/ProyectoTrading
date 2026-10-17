@@ -1,4 +1,67 @@
-  const STORAGE_KEY = "trading-proof-demo";
+import { Networks } from "@stellar/stellar-sdk";
+
+import {
+  StellarWalletsKit,
+} from "@creit.tech/stellar-wallets-kit/sdk";
+
+import {
+  defaultModules,
+} from "@creit.tech/stellar-wallets-kit/modules/utils";
+
+
+StellarWalletsKit.init({
+  modules: defaultModules(),
+});
+
+StellarWalletsKit.setNetwork(Networks.TESTNET);
+
+let walletAddress = null;
+
+const connectWalletButton =
+  document.getElementById("connectWalletButton");
+
+const walletStatus =
+  document.getElementById("walletStatus");
+
+const walletAddressElement =
+  document.getElementById("walletAddress");
+
+
+connectWalletButton.addEventListener(
+  "click",
+  async () => {
+
+    try {
+      walletStatus.textContent =
+        "Esperando conexión...";
+
+      const { address } =
+        await StellarWalletsKit.authModal();
+
+      walletAddress = address;
+
+      walletStatus.textContent =
+        "Conectada a Stellar Testnet";
+
+      walletAddressElement.textContent =
+        walletAddress;
+
+      connectWalletButton.textContent =
+        "Cambiar billetera";
+
+    } catch (error) {
+      console.error(error);
+
+      walletStatus.textContent =
+        "No se pudo conectar la billetera";
+
+      walletAddressElement.textContent = "";
+    }
+  }
+);
+
+
+const STORAGE_KEY = "trading-proof-demo";
 
   let currentEvidence = null;
 

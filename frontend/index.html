@@ -178,6 +178,43 @@
         flex-wrap: wrap;
       }
     }
+
+    .wallet-shell {
+      max-width: 1100px;
+      margin: 20px auto 0;
+      padding: 0 24px;
+    }
+
+    .wallet-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .wallet-card .primary {
+      margin-top: 0;
+    }
+
+    .wallet-status {
+      margin-top: 6px;
+      color: #8b949e;
+    }
+
+    .wallet-address {
+      margin-top: 6px;
+      font-family: monospace;
+      overflow-wrap: anywhere;
+      color: #3fb950;
+    }
+
+    @media (max-width: 700px) {
+      .wallet-card {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
+
   </style>
 </head>
 
@@ -192,6 +229,22 @@
     en la siguiente fase.
   </div>
 </header>
+
+<div class="wallet-shell">
+  <div class="card wallet-card">
+    <div>
+      <strong>Wallet Stellar</strong>
+      <div id="walletStatus" class="wallet-status">
+        No conectada
+      </div>
+      <div id="walletAddress" class="wallet-address"></div>
+    </div>
+
+    <button id="connectWalletButton" class="primary">
+      Conectar billetera
+    </button>
+  </div>
+</div>
 
 <nav>
   <button class="tab active" data-target="registrar">Registrar</button>
